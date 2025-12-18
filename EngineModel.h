@@ -25,54 +25,45 @@ public:
     static constexpr double k3 = 0.5;
 
     // ==========================================
-    // ФУНКЦІЯ ЗБУРЕННЯ F(t)
-    // Використовуємо гладку функцію, яка має всі похідні
-    // F(t) = A·exp(-α·t)·sin(ω·t)  для t ≥ 0
+    // ФУНКЦІЯ ЗБУРЕННЯ F(t) - ЗАВЖДИ ПОЗИТИВНЕ!
+    // 
+    // Фізична інтерпретація: подача палива в двигун
+    // F(t) > 0 завжди (не може бути від'ємною!)
+    //
+    // Варіант 1: Експоненціальний імпульс (загасання)
+    // F(t) = F₀·exp(-α·t)  - "натискаємо газ, потім відпускаємо"
     // ==========================================
     
-    static constexpr double A = 1.0;      // Амплітуда
-    static constexpr double alpha = 0.5;  // Коефіцієнт загасання
-    static constexpr double omega = 3.0;  // Частота коливань
+    static constexpr double F0 = 10.0;    // Початкова подача палива
+    static constexpr double alpha = 0.3;  // Швидкість загасання
 
     static double F(double t) {
         if (t < 0) return 0.0;
-        return A * std::exp(-alpha * t) * std::sin(omega * t);
+        // Експоненціальне загасання - завжди позитивне!
+        return F0 * std::exp(-alpha * t);
     }
 
     // ==========================================
     // ПОХІДНІ ЗБУРЕННЯ F(t)
-    // F(t) = A·e^(-α·t)·sin(ω·t)
+    // F(t) = F₀·e^(-α·t)
     //
-    // F'(t) = A·e^(-α·t)·[ω·cos(ω·t) - α·sin(ω·t)]
+    // F'(t) = -α·F₀·e^(-α·t) = -α·F(t)
     //
-    // F''(t) = A·e^(-α·t)·[(α²-ω²)·sin(ω·t) - 2·α·ω·cos(ω·t)]
+    // F''(t) = α²·F₀·e^(-α·t) = α²·F(t)
     //
-    // F'''(t) = A·e^(-α·t)·[(3·α·ω²-α³)·sin(ω·t) + (ω³-3·α²·ω)·cos(ω·t)]
+    // F'''(t) = -α³·F₀·e^(-α·t) = -α³·F(t)
     // ==========================================
     
     static double F_first_derivative(double t) {
-        if (t < 0) return 0.0;
-        double exp_term = A * std::exp(-alpha * t);
-        return exp_term * (omega * std::cos(omega * t) - alpha * std::sin(omega * t));
+        return -alpha * F(t);
     }
 
     static double F_second_derivative(double t) {
-        if (t < 0) return 0.0;
-        double exp_term = A * std::exp(-alpha * t);
-        return exp_term * ((alpha * alpha - omega * omega) * std::sin(omega * t) 
-                          - 2.0 * alpha * omega * std::cos(omega * t));
+        return alpha * alpha * F(t);
     }
 
     static double F_third_derivative(double t) {
-        if (t < 0) return 0.0;
-        double exp_term = A * std::exp(-alpha * t);
-        double alpha2 = alpha * alpha;
-        double alpha3 = alpha2 * alpha;
-        double omega2 = omega * omega;
-        double omega3 = omega2 * omega;
-        
-        return exp_term * ((3.0 * alpha * omega2 - alpha3) * std::sin(omega * t) 
-                          + (omega3 - 3.0 * alpha2 * omega) * std::cos(omega * t));
+        return -alpha * alpha * alpha * F(t);
     }
 
     // ==========================================
